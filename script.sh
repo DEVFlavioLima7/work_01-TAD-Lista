@@ -23,8 +23,35 @@ install_dependency() {
 if [ "$(uname -s)" == "Linux" ]; then
   OS="Linux"
   echo "Sistema Operacional Linux"
+elif [ "$(uname -s)" == "Darwin" ]; then
+  OS="macOS"
+  echo "Sistema Operacional macOS não suportado neste script."
+  exit 1
 else
-  echo "Sistema Operacional não suportado"
+  OS="Windows"
+  echo "Sistema Operacional Windows detectado."
+
+  # Verificar se o WSL está instalado e disponível
+  if ! wsl -l &>/dev/null; then
+    echo "WSL não está instalado ou não está disponível."
+    read -p "Deseja instalar o WSL? (S/N): " resposta
+    if [ "$resposta" == "S" ] || [ "$resposta" == "s" ]; then
+      echo "Instalando WSL..."
+      wsl --install
+      echo "WSL instalado com sucesso."
+      echo "Reinicie o computador para concluir a instalação."
+    else
+      echo "Instalação do WSL cancelada."
+      exit 1
+    fi
+  else
+    wsl
+    git clone https://github.com/KauaHenSilva/c_Image_treatment
+    cd c_Image_treatment
+    bash script.sh
+  fi
+  else
+  echo "Sistema Operacional não suportado."
   exit 1
 fi
 
