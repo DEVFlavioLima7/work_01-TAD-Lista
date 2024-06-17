@@ -10,11 +10,7 @@ install_dependency() {
     echo "$package_name não está instalado."
     read -p "Deseja instalar $package_name? (S/N): " resposta
     if [ "$resposta" == "S" ] || [ "$resposta" == "s" ]; then
-      if [ "$OS" == "Linux" ]; then
-        sudo apt-get install "$package_name"
-      elif [ "$OS" == "Mac" ]; then
-        brew install "$package_name"
-      fi
+      sudo apt-get install "$package_name" -y
     else
       echo "Instalação de $package_name cancelada."
     fi
@@ -27,9 +23,6 @@ install_dependency() {
 if [ "$(uname -s)" == "Linux" ]; then
   OS="Linux"
   echo "Sistema Operacional Linux"
-elif [ "$(uname -s)" == "Darwin" ]; then
-  OS="Mac"
-  echo "Sistema Operacional Mac"
 else
   echo "Sistema Operacional não suportado"
   exit 1
@@ -45,13 +38,8 @@ case "$opcao_execucao" in
   echo "Executando localmente..."
 
   # Atualizar os repositórios de pacotes
-  if [ "$OS" == "Linux" ]; then
-    echo "Atualizando pacotes no Linux..."
-    sudo apt-get update
-  elif [ "$OS" == "Mac" ]; then
-    echo "Atualizando pacotes no Mac..."
-    brew update
-  fi
+  echo "Atualizando pacotes no Linux..."
+  sudo apt-get update
 
   # Verificar e instalar as dependências
   install_dependency "meson" "meson"
@@ -63,12 +51,7 @@ case "$opcao_execucao" in
     echo "GTK não está instalado."
     read -p "Deseja instalar o GTK? (S/N): " resposta
     if [ "$resposta" == "S" ] || [ "$resposta" == "s" ]; then
-      if [ "$OS" == "Linux" ]; then
-        sudo apt-get install libgtk-3-dev
-      elif [ "$OS" == "Mac" ]; then
-        echo "GTK não é suportado no macOS através de brew diretamente. Consulte a documentação oficial para instalação."
-        exit 1
-      fi
+      sudo apt-get install libgtk-3-dev
     else
       echo "Instalação do GTK cancelada."
     fi
@@ -96,22 +79,8 @@ case "$opcao_execucao" in
 2)
   echo "Executando usando Docker..."
 
-  # Verificar se o Docker está instalado
-  if ! command -v docker &>/dev/null; then
-    echo "Docker não está instalado."
-    read -p "Deseja instalar o Docker? (S/N): " resposta
-    if [ "$resposta" == "S" ] || [ "$resposta" == "s" ]; then
-      if [ "$OS" == "Linux" ]; then
-        sudo apt-get install docker.io
-      elif [ "$OS" == "Mac" ]; then
-        brew install docker
-      fi
-    else
-      echo "Instalação do Docker cancelada."
-    fi
-  else
-    echo "Docker já está instalado."
-  fi
+  # Verificar se o docker está instalado:
+  install_dependency "docker" "docker"
 
   sudo docker build -t work_01-tad-lista .
   sudo xhost +local:root
