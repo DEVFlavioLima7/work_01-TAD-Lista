@@ -1,18 +1,3 @@
-# This Dockerfile is used to build an image for work_01-tad-lista.
-
-# Build the image
-# sudo docker build -t work_01-tad-lista .
-
-# Allow root access to the X server
-# sudo xhost +local:root
-
-# Run the container with interactive mode and remove it after it exits
-# sudo docker run -it --rm --env DISPLAY=$DISPLAY --env XAUTHORITY=$XAUTHORITY --volume /tmp/.X11-unix:/tmp/.X11-unix work_01-tad-lista
-
-# Revoke root access to the X server
-# sudo xhost -local:root
-
-
 FROM ubuntu:24.04
 
 # Install dependencies
@@ -31,6 +16,8 @@ WORKDIR /app
 RUN meson builddir
 RUN ninja -C builddir
 
+# Set GTK_THEME to Adwaita:dark
+ENV GTK_THEME=Adwaita:dark
+
 # Run the application
 CMD ["./builddir/work_01-TAD-Lista"]
-
