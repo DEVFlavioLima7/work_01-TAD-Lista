@@ -94,7 +94,7 @@ ImageGray *flip_vertical_gray(ImageGray *image)
 
 ImageGray *flip_horizontal_gray(ImageGray *image)
 {
-  if (image == NULL)
+ if (image == NULL)
   {
     return NULL;
   }
@@ -122,7 +122,6 @@ ImageGray *flip_horizontal_gray(ImageGray *image)
 
 ImageGray *transpose_gray(const ImageGray *image)
 {
-
   int largura = image->dim.largura;
   int altura = image->dim.altura;
 
@@ -143,6 +142,7 @@ ImageGray *transpose_gray(const ImageGray *image)
     }
   }
   return imagem_trasposta;
+  
 }
 
 // Funcao para calcular os valores do histograma
@@ -179,7 +179,10 @@ void limite_histograma(int *histograma, int num_blocos, int limite_corte)
   }
   int incremento = excesso / num_blocos;
   int limite_superior = limite_corte - incremento;
+
+
   excesso = 0;
+  // aqui o estograma sera ajustado e havera a redestribuicao do excesso
   for (int i = 0; i < num_blocos; ++i)
   {
     if (histograma[i] > limite_superior)
@@ -192,6 +195,8 @@ void limite_histograma(int *histograma, int num_blocos, int limite_corte)
       histograma[i] += incremento;
     }
   }
+
+  // destribuicao do excesso que sobrou da primeira destricuicao
   for (int i = 0; i < num_blocos && excesso > 0; ++i)
   {
     if (histograma[i] < limite_corte)
