@@ -232,7 +232,7 @@ static void on_filter_clahe_rgb_button_clicked(GtkWidget *widget, gpointer data)
   }
   else
   {
-    ImageRGB *newImgRGB = clahe_rgb(historicoRGBAtual->imgRGB, 256, 256);
+    ImageRGB *newImgRGB = clahe_rgb(historicoRGBAtual->imgRGB, 512, 512);
     adicionarHistoricoRGB(newImgRGB, CLAHE);
     
    
