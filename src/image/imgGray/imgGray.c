@@ -5,11 +5,11 @@
 
 ImageGray *create_image_gray(int largura, int altura)
 {
-  ImageGray *img = calloc(1, sizeof(ImageGray));
+  ImageGray *img = malloc(sizeof(ImageGray));
 
   img->dim.altura = altura;
   img->dim.largura = largura;
-  img->pixels = calloc((largura * altura), sizeof(PixelGray));
+  img->pixels = malloc((largura * altura) * sizeof(PixelGray));
 
   return img;
 }
@@ -94,7 +94,7 @@ ImageGray *flip_vertical_gray(ImageGray *image)
 
 ImageGray *flip_horizontal_gray(ImageGray *image)
 {
-  if (image == NULL)
+ if (image == NULL)
   {
     return NULL;
   }
@@ -102,27 +102,26 @@ ImageGray *flip_horizontal_gray(ImageGray *image)
   int largura = image->dim.largura;
   int altura = image->dim.altura;
 
-  ImageGray *nova_imagem_horizontal = create_image_gray(largura, altura);
+  ImageGray *imagem_horizontal = create_image_gray(largura, altura);
 
-  if (nova_imagem_horizontal == NULL)
+  if (imagem_horizontal == NULL)
   {
     return NULL;
   }
-
+  // Os pixels da imagem gray original serão copiados na nova imagem, porem invertidos horizontalmente
   for (int i = 0; i < altura; ++i)
   {
     for (int y = 0; y < largura; ++y)
     {
-      nova_imagem_horizontal->pixels[i * largura + (largura - 1 - y)] = image->pixels[i * largura + y];
+      imagem_horizontal->pixels[i * largura + (largura - 1 - y)] = image->pixels[i * largura + y];
     }
   }
 
-  return nova_imagem_horizontal;
+  return imagem_horizontal;
 }
 
 ImageGray *transpose_gray(const ImageGray *image)
 {
-
   int largura = image->dim.largura;
   int altura = image->dim.altura;
 
@@ -133,6 +132,8 @@ ImageGray *transpose_gray(const ImageGray *image)
     return NULL;
   }
 
+  // Os pixels da imagem gray original serão copiados na nova imagem, porem traspostos, trocando
+  // os valores das linhas pelos das colunas
   for (int i = 0; i < largura; i++)
   {
     for (int j = 0; j < altura; j++)
@@ -141,6 +142,7 @@ ImageGray *transpose_gray(const ImageGray *image)
     }
   }
   return imagem_trasposta;
+  
 }
 
 // Funcao para calcular os valores do histograma
@@ -174,7 +176,8 @@ void limite_histograma(int *histograma, int num_blocos, int limite_corte)
   int incremento = excesso / num_blocos;
   int limite_superior = limite_corte - incremento;
 
-  // ajuste do histograma
+  excesso = 0;
+  // aqui o estograma sera ajustado e havera a redestribuicao do excesso
   for (int i = 0; i < num_blocos; ++i)
   {
     if (histograma[i] > limite_superior)
@@ -185,10 +188,10 @@ void limite_histograma(int *histograma, int num_blocos, int limite_corte)
     else
     {
       histograma[i] += incremento;
-      excesso -= incremento;
     }
   }
-  // destribuicao do excesso
+
+  // destribuicao do excesso que sobrou da primeira destricuicao
   for (int i = 0; i < num_blocos && excesso > 0; ++i)
   {
     if (histograma[i] < limite_corte)
