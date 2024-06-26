@@ -117,7 +117,7 @@ static void on_clahe_gray_button_clicked(GtkWidget *widget, gpointer data)
 
   else if (!historicoGrayAtual->buttonStatus.clahe)
   {
-    newImage = clahe_gray(historicoGrayAtual->imgGray, 512, 512);
+    newImage = clahe_gray(historicoGrayAtual->imgGray, 256, 256);
     adicionarHistoricoGray(newImage, CLAHE);
   }
 
