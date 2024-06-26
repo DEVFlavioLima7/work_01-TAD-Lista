@@ -234,7 +234,11 @@ static void on_filter_clahe_rgb_button_clicked(GtkWidget *widget, gpointer data)
   }
   else
   {
+<<<<<<< HEAD
     ImageRGB *newImgRGB = clahe_rgb(historicoRGBAtual->imgRGB,tile_width, tile_height);
+=======
+    ImageRGB *newImgRGB = clahe_rgb(historicoRGBAtual->imgRGB, 256, 256);
+>>>>>>> refs/remotes/origin/main
     adicionarHistoricoRGB(newImgRGB, CLAHE);
     
    

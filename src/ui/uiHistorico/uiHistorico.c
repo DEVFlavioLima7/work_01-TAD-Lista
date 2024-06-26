@@ -125,12 +125,13 @@ ImageGray *refrashHistoricFuncGray(FuncUsed funcUsed)
     return NULL;
   }
 
+  int usedClahe = 0;
+  int usedMedianBlur = 0;
+
   newImage = read_image_gray_from_file("imgGray.txt");
   ImgHistoricoGray *aux = historicoGrayInicio;
   do
   {
-    if (funcUsed != aux->funcUsed)
-    {
       switch (aux->funcUsed)
       {
         case FLIP_HORIZONTAL:
@@ -143,26 +144,35 @@ ImageGray *refrashHistoricFuncGray(FuncUsed funcUsed)
           newImage = transpose_gray(newImage);
           break;
         case CLAHE:
-          if (historicoGrayAtual->buttonStatus.clahe)
-            newImage = clahe_gray(newImage, 512, 512);
+          usedClahe = !usedClahe;
           break;
         case MEDIAN_BLUR:
-          if (historicoGrayAtual->buttonStatus.median_blur)
-            newImage = median_blur_gray(newImage, 3);
+          usedMedianBlur = !usedMedianBlur;
+          break;
+        case FLIP_ADD90:
+          newImage = add90_rotation_gray(newImage);
+          break;
+        case FLIP_NEQ90:
+          newImage = neq90_rotation_gray(newImage);
           break;
         default:
           break;
       }
-    }
     aux = aux->next;
   } while (aux != NULL);
 
-  for (int i = 0; i < historicoGrayAtual->buttonStatus.qtdFlipAdd90; i++)
-    newImage = add90_rotation_gray(newImage);
+  if (funcUsed == CLAHE)
+    usedClahe = !usedClahe;
+  
+  if (funcUsed == MEDIAN_BLUR)
+    usedMedianBlur = !usedMedianBlur;
 
-  for (int i = 0; i < historicoGrayAtual->buttonStatus.qtdFlipNeq90; i++)
-    newImage = neq90_rotation_gray(newImage);
+  if (usedClahe)
+    newImage = clahe_gray(newImage, 512, 512);
 
+  if (usedMedianBlur)
+    newImage = median_blur_gray(newImage, 3);
+  
   return newImage;
 }
 
@@ -181,43 +191,53 @@ ImageRGB *refrashHistoricFuncRGB(FuncUsed funcUsed)
     return NULL;
   }
 
+  int usedClahe = 0;
+  int usedMedianBlur = 0;
+
   newImage = read_imageRGB("imgRGB.txt");
   ImgHistoricoRGB *aux = historicoRGBInicio;
   do
   {
-    if (funcUsed != aux->funcUsed)
+    switch (aux->funcUsed)
     {
-      switch (aux->funcUsed)
-      {
-        case FLIP_HORIZONTAL:
-          newImage = flip_horizontal_rgb(newImage);
-          break;
-        case FLIP_VERTICAL:
-          newImage = flip_vertical_rgb(newImage);
-          break;
-        case TRANSPOSE:
-          newImage = transpose_rgb(newImage);
-          break;
-        case CLAHE:
-          if (historicoRGBAtual->buttonStatus.clahe)
-            newImage = clahe_rgb(newImage, 512, 512);
-          break;
-        case MEDIAN_BLUR:
-          if (historicoRGBAtual->buttonStatus.median_blur)
-            newImage = median_blur_rgb(newImage, 3);
-          break;
-        default:
-          break;
-      }
+      case FLIP_HORIZONTAL:
+        newImage = flip_horizontal_rgb(newImage);
+        break;
+      case FLIP_VERTICAL:
+        newImage = flip_vertical_rgb(newImage);
+        break;
+      case TRANSPOSE:
+        newImage = transpose_rgb(newImage);
+        break;
+      case CLAHE:
+        usedClahe = !usedClahe;
+        break;
+      case MEDIAN_BLUR:
+        usedMedianBlur = !usedMedianBlur;
+        break;
+      case FLIP_ADD90:
+        newImage = add90_rotation_RGB(newImage);
+        break;
+      case FLIP_NEQ90:
+        newImage = neq90_rotation_RGB(newImage);
+        break;
+      default:
+        break;
     }
     aux = aux->next;
   } while (aux != NULL);
 
-  for (int i = 0; i < historicoRGBAtual->buttonStatus.qtdFlipAdd90; i++)
-    newImage = add90_rotation_RGB(newImage);
+  if (funcUsed == CLAHE)
+    usedClahe = !usedClahe;
+  
+  if (funcUsed == MEDIAN_BLUR)
+    usedMedianBlur = !usedMedianBlur;
 
-  for (int i = 0; i < historicoRGBAtual->buttonStatus.qtdFlipNeq90; i++)
-    newImage = neq90_rotation_RGB(newImage);
+  if (usedClahe)
+    newImage = clahe_rgb(newImage, 512, 512);
+
+  if (usedMedianBlur)
+    newImage = median_blur_rgb(newImage, 3);
 
   return newImage;
 }
