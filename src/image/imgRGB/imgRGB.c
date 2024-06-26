@@ -217,80 +217,124 @@ void calcular_distribuicao_rgb(const int *histograma, int num_bins, int total_pi
 
 ImageRGB *clahe_rgb(const ImageRGB *image, int tile_width, int tile_height)
 {
-    if (image == NULL || tile_width <= 0 || tile_height <= 0) {
-        return NULL;
+   if (image == NULL || tile_width <= 0 || tile_height <= 0) {
+    return NULL;
+}
+
+int largura = image->dim.largura;
+int altura = image->dim.altura;
+int total_pixels = largura * altura;
+int limite_corte = (total_pixels / 256) * 2;
+
+ImageRGB *resultado = create_image_rgb(largura, altura);
+if (resultado == NULL) {
+    return NULL;
+}
+
+int num_blocos_horizontal = (largura + tile_width - 1) / tile_width;
+int num_blocos_vertical = (altura + tile_height - 1) / tile_height;
+
+int num_bins = 256;
+int ***histogramas_blocos = (int ***)malloc(3 * sizeof(int **));
+int ***cdf_blocos = (int ***)malloc(3 * sizeof(int **));
+for (int canal = 0; canal < 3; ++canal) {
+    histogramas_blocos[canal] = (int **)malloc(num_blocos_horizontal * num_blocos_vertical * sizeof(int *));
+    cdf_blocos[canal] = (int **)malloc(num_blocos_horizontal * num_blocos_vertical * sizeof(int *));
+    for (int i = 0; i < num_blocos_horizontal * num_blocos_vertical; ++i) {
+        histogramas_blocos[canal][i] = (int *)calloc(num_bins, sizeof(int));
+        cdf_blocos[canal][i] = (int *)calloc(num_bins, sizeof(int));
     }
+}
 
-    int largura = image->dim.largura;
-    int altura = image->dim.altura;
-    int total_pixels = largura * altura;
-    int limite_corte = (total_pixels / 256) * 2;
+// Calcular histogramas e cdfs para cada bloco
+for (int by = 0; by < num_blocos_vertical; ++by) {
+    for (int bx = 0; bx < num_blocos_horizontal; ++bx) {
+        int x_inicial = bx * tile_width;
+        int y_inicial = by * tile_height;
+        int x_final = (x_inicial + tile_width > largura) ? largura : x_inicial + tile_width;
+        int y_final = (y_inicial + tile_height > altura) ? altura : y_inicial + tile_height;
 
-    ImageRGB *resultado = create_image_rgb(largura, altura);
-    if (resultado == NULL) {
-        return NULL;
-    }
+        for (int canal = 0; canal < 3; ++canal) {
+            int *hist = histogramas_blocos[canal][by * num_blocos_horizontal + bx];
+            for (int i = 0; i < num_bins; i++) hist[i] = 0;
 
-    int num_blocos_horizontal = (largura + tile_width - 1) / tile_width;
-    int num_blocos_vertical = (altura + tile_height - 1) / tile_height;
+            // Calcular histogramas para cada canal
+            calcula_histograma_rgb(x_final, x_inicial, y_final, y_inicial, hist, image, largura, 'r' + canal);
 
-    int num_bins = 256;
-    int *histograma = (int *)calloc(num_bins, sizeof(int));
-    int *cdf = (int *)calloc(num_bins, sizeof(int));
-
-    if (!histograma || !cdf) {
-        free(histograma);
-        free(cdf);
-        free_image_rgb(resultado);
-        return NULL;
-    }
-
-    for (int id_vertical = 0; id_vertical < num_blocos_vertical; ++id_vertical) {
-        for (int id_horizontal = 0; id_horizontal < num_blocos_horizontal; ++id_horizontal) {
-            int inicio_x = id_horizontal * tile_width;
-            int inicio_y = id_vertical * tile_height;
-            int fim_x = inicio_x + tile_width;
-            int fim_y = inicio_y + tile_height;
-
-            if (fim_x > largura) fim_x = largura;
-            if (fim_y > altura) fim_y = altura;
-
-            // Processar cada canal separadamente
-            char canais[3] = {'r', 'g', 'b'};
-            for (int c = 0; c < 3; c++) {
-                char canal = canais[c];
-                for (int i = 0; i < num_bins; i++) histograma[i] = 0;
-
-                calcula_histograma_rgb(fim_x, inicio_x, fim_y, inicio_y, histograma, image, largura, canal);
-                limite_histograma_rgb(histograma, num_bins, limite_corte);
-                int regiao_pixels = (fim_x - inicio_x) * (fim_y - inicio_y);
-                calcular_distribuicao_rgb(histograma, num_bins, regiao_pixels, cdf);
-
-                for (int y = inicio_y; y < fim_y; ++y) {
-                    for (int x = inicio_x; x < fim_x; ++x) {
-                        int valor_pixel, novo_valor;
-                        if (canal == 'r') {
-                            valor_pixel = image->pixels[y * largura + x].red;
-                            novo_valor = cdf[valor_pixel];
-                            resultado->pixels[y * largura + x].red = novo_valor;
-                        } else if (canal == 'g') {
-                            valor_pixel = image->pixels[y * largura + x].green;
-                            novo_valor = cdf[valor_pixel];
-                            resultado->pixels[y * largura + x].green = novo_valor;
-                        } else {
-                            valor_pixel = image->pixels[y * largura + x].blue;
-                            novo_valor = cdf[valor_pixel];
-                            resultado->pixels[y * largura + x].blue = novo_valor;
-                        }
-                    }
-                }
-            }
+            limite_histograma_rgb(hist, num_bins, limite_corte);
+            int regiao_pixels = (x_final - x_inicial) * (y_final - y_inicial);
+            calcular_distribuicao_rgb(hist, num_bins, regiao_pixels, cdf_blocos[canal][by * num_blocos_horizontal + bx]);
         }
     }
+}
 
-    free(histograma);
-    free(cdf);
-    return resultado;
+// Aplicar CLAHE com interpolação
+for (int y = 0; y < altura; ++y) {
+    for (int x = 0; x < largura; ++x) {
+        int bx = x / tile_width;
+        int by = y / tile_height;
+
+        int x1 = bx * tile_width;
+        int y1 = by * tile_height;
+        int x2 = (x1 + tile_width > largura) ? largura : x1 + tile_width;
+        int y2 = (y1 + tile_height > altura) ? altura : y1 + tile_height;
+
+        float dx = (float)(x - x1) / (x2 - x1);
+        float dy = (float)(y - y1) / (y2 - y1);
+
+        int novo_valor_red = 0, novo_valor_green = 0, novo_valor_blue = 0;
+
+        for (int canal = 0; canal < 3; ++canal) {
+            int valor_pixel;
+            if (canal == 0) {
+                valor_pixel = image->pixels[y * largura + x].red;
+            } else if (canal == 1) {
+                valor_pixel = image->pixels[y * largura + x].green;
+            } else {
+                valor_pixel = image->pixels[y * largura + x].blue;
+            }
+
+            // Interpolação entre os blocos
+            int cdf1 = cdf_blocos[canal][by * num_blocos_horizontal + bx][valor_pixel];
+            int cdf2 = (bx + 1 < num_blocos_horizontal) ? cdf_blocos[canal][by * num_blocos_horizontal + bx + 1][valor_pixel] : cdf1;
+            int cdf3 = (by + 1 < num_blocos_vertical) ? cdf_blocos[canal][(by + 1) * num_blocos_horizontal + bx][valor_pixel] : cdf1;
+            int cdf4 = (bx + 1 < num_blocos_horizontal && by + 1 < num_blocos_vertical) ? cdf_blocos[canal][(by + 1) * num_blocos_horizontal + bx + 1][valor_pixel] : cdf1;
+
+            int novo_valor = (int)((1 - dx) * (1 - dy) * cdf1 + dx * (1 - dy) * cdf2 + (1 - dx) * dy * cdf3 + dx * dy * cdf4);
+
+            // Verificação de valores
+            if (novo_valor < 0) novo_valor = 0;
+            if (novo_valor > 255) novo_valor = 255;
+
+            if (canal == 0) {
+                novo_valor_red = novo_valor;
+            } else if (canal == 1) {
+                novo_valor_green = novo_valor;
+            } else {
+                novo_valor_blue = novo_valor;
+            }
+        }
+
+        // Atribuir novo valor ao resultado
+        resultado->pixels[y * largura + x].red = novo_valor_red;
+        resultado->pixels[y * largura + x].green = novo_valor_green;
+        resultado->pixels[y * largura + x].blue = novo_valor_blue;
+    }
+}
+
+// Liberar memória alocada para histogramas e CDFs
+for (int canal = 0; canal < 3; ++canal) {
+    for (int i = 0; i < num_blocos_horizontal * num_blocos_vertical; ++i) {
+        free(histogramas_blocos[canal][i]);
+        free(cdf_blocos[canal][i]);
+    }
+    free(histogramas_blocos[canal]);
+    free(cdf_blocos[canal]);
+}
+free(histogramas_blocos);
+free(cdf_blocos);
+
+return resultado;
 }
 
 int compare_red(const void *a, const void *b)
