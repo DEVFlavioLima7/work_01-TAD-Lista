@@ -35,7 +35,7 @@ ImageGray *read_image_gray_from_file(const char *filename)
     file = fopen(new_filename, "r");
     if (!file)
     {
-      fprintf(stderr, "Não foi possível abrir o arquivo %s\n", filename);
+      fprintf(stderr, "Não foi possivel abrir o arquivo %s\n", filename);
       return NULL;
     }
     free(new_filename);
@@ -145,15 +145,13 @@ ImageGray *transpose_gray(const ImageGray *image)
   
 }
 
-// Funcao para calcular os valores do histograma
-int interpolar_bilinear(int cdf11, int cdf12, int cdf21, int cdf22, float dx, float dy)
+// Funcao para calcular a interpolacao bilinear
+int interpolacao_bilinear(int cdf_sup_esquerda, int cdf_inf_esquerda, int cdf_sup_direita, int cdf_inf_direita, float dx, float dy)
 {
-  return (int)((1 - dx) * (1 - dy) * cdf11 +
-               dx * (1 - dy) * cdf21 +
-               (1 - dx) * dy * cdf12 +
-               dx * dy * cdf22);
+  return (int)((1 - dx) * (1 - dy) * cdf_sup_esquerda + dx * (1 - dy) * cdf_sup_direita + (1 - dx) * dy * cdf_inf_esquerda + dx * dy * cdf_inf_direita);
 }
 
+// Funcao para calcular os valores do histograma
 void calcular_histograma(int fim_x, int inicio_x, int fim_y, int inicio_y, int *histograma, const ImageGray *img, int largura)
 {
   for (int y = inicio_y; y < fim_y; ++y)
@@ -166,6 +164,7 @@ void calcular_histograma(int fim_x, int inicio_x, int fim_y, int inicio_y, int *
   }
 }
 
+// Funcao para calcular o limite do histograma
 void limite_histograma(int *histograma, int num_blocos, int limite_corte)
 {
   int excesso = 0;
@@ -207,6 +206,7 @@ void limite_histograma(int *histograma, int num_blocos, int limite_corte)
   }
 }
 
+// Funcao para calcular a distribuicao dos valores do histograma
 void calcular_distribuicao(const int *histograma, int num_blocos, int total_pixels, int *cdf)
 {
   cdf[0] = histograma[0];
@@ -216,10 +216,11 @@ void calcular_distribuicao(const int *histograma, int num_blocos, int total_pixe
   }
   for (int i = 0; i < num_blocos; ++i)
   {
-    cdf[i] = (int)(((float)cdf[i] / total_pixels) * 255.0);
+    cdf[i] = ((cdf[i] * 256) / total_pixels);
   }
 }
 
+// Funcao para aplicar o processamento do bloco
 void Processar_bloco(int inicio_x, int fim_x, int inicio_y, int fim_y, const ImageGray *imagem, int largura, int altura, int *histograma, int num_bins, int limite_corte, int *cdf)
 {
   if (fim_x > largura)
@@ -234,12 +235,36 @@ void Processar_bloco(int inicio_x, int fim_x, int inicio_y, int fim_y, const Ima
   calcular_distribuicao(histograma, num_bins, regiao_pixels, cdf);
 }
 
+// Funcao para aplicar a interpolacao bilinear
+int aplicar_cdf_valores(const ImageGray *imagem, int x, int y, int largura, int num_blocos_horizontal, int num_bins, int *cdf_tiles, int bloco_y, int bloco_x, int bloco_y_next, int bloco_x_next, float dx, float dy)
+{
+  int bloco_id = bloco_y * num_blocos_horizontal + bloco_x;
+  int bloco_id_prox_x = bloco_y * num_blocos_horizontal + bloco_x_next;
+  int bloco_id_prox_y = bloco_y_next * num_blocos_horizontal + bloco_x;
+  int bloco_id_prox_xy = bloco_y_next * num_blocos_horizontal + bloco_x_next;
+
+  int pixel_value = imagem->pixels[y * largura + x].value;
+
+  int id_sup_esquerda = (bloco_id * num_bins) + pixel_value;
+  int id_inf_esquerda = (bloco_id_prox_y * num_bins) + pixel_value;
+  int id_sup_direita = (bloco_id_prox_x * num_bins) + pixel_value;
+  int id_inf_direita = (bloco_id_prox_xy * num_bins) + pixel_value;
+
+  int cdf_sup_esquerda = cdf_tiles[id_sup_esquerda];
+  int cdf_inf_esquerda = cdf_tiles[id_inf_esquerda];
+  int cdf_sup_direita = cdf_tiles[id_sup_direita];
+  int cdf_inf_direita = cdf_tiles[id_inf_direita];
+
+  return interpolacao_bilinear(cdf_sup_esquerda, cdf_inf_esquerda, cdf_sup_direita, cdf_inf_direita, dx, dy);
+}
+
 ImageGray *clahe_gray(const ImageGray *imagem, int tile_width, int tile_height)
 {
   int largura = imagem->dim.largura;
   int altura = imagem->dim.altura;
   int total_pixels = largura * altura;
   int limite_corte = (total_pixels / 256) * 2;
+
   ImageGray *resultado = create_image_gray(largura, altura);
   if (resultado == NULL)
     return NULL;
@@ -258,7 +283,7 @@ ImageGray *clahe_gray(const ImageGray *imagem, int tile_width, int tile_height)
     return NULL;
   }
 
-  // Agora, cdf_tiles é um vetor unidimensional
+  // Cdf_tiles é um vetor unidimensional
   int *cdf_tiles = (int *)malloc(num_blocos_vertical * num_blocos_horizontal * num_bins * sizeof(int));
   if (cdf_tiles == NULL)
   {
@@ -283,8 +308,10 @@ ImageGray *clahe_gray(const ImageGray *imagem, int tile_width, int tile_height)
       Processar_bloco(inicio_x, fim_x, inicio_y, fim_y, imagem, largura, altura, histograma, num_bins, limite_corte, cdf);
       for (int i = 0; i < num_bins; ++i)
       {
-        // Calcula o índice correto no vetor cdf_tiles
-        cdf_tiles[(id_vertical * num_blocos_horizontal + id_horizontal) * num_bins + i] = cdf[i];
+        // Calcula o indice correto no vetor cdf_tiles
+        int id = (id_vertical * num_blocos_horizontal + id_horizontal) * num_bins + i;
+
+        cdf_tiles[id] = cdf[i];
       }
     }
   }
@@ -295,10 +322,11 @@ ImageGray *clahe_gray(const ImageGray *imagem, int tile_width, int tile_height)
     {
       int bloco_x = x / tile_width;
       int bloco_y = y / tile_height;
+
       float dx = (float)(x % tile_width) / tile_width;
       float dy = (float)(y % tile_height) / tile_height;
 
-      // Ajusta índices para evitar acessar fora dos limites
+      // Ajusta indices para evitar acessar fora dos limites
       int bloco_x_next;
       if (bloco_x + 1 < num_blocos_horizontal)
       {
@@ -319,12 +347,8 @@ ImageGray *clahe_gray(const ImageGray *imagem, int tile_width, int tile_height)
         bloco_y_next = bloco_y;
       }
 
-      int cdf11 = cdf_tiles[(bloco_y * num_blocos_horizontal + bloco_x) * num_bins + imagem->pixels[y * largura + x].value];
-      int cdf12 = cdf_tiles[(bloco_y_next * num_blocos_horizontal + bloco_x) * num_bins + imagem->pixels[y * largura + x].value];
-      int cdf21 = cdf_tiles[(bloco_y * num_blocos_horizontal + bloco_x_next) * num_bins + imagem->pixels[y * largura + x].value];
-      int cdf22 = cdf_tiles[(bloco_y_next * num_blocos_horizontal + bloco_x_next) * num_bins + imagem->pixels[y * largura + x].value];
-
-      int novo_valor = interpolar_bilinear(cdf11, cdf12, cdf21, cdf22, dx, dy);
+      //Aplicando a interpolacao bilinear no cdf
+      int novo_valor = aplicar_cdf_valores(imagem, x, y, largura, num_blocos_horizontal, num_bins, cdf_tiles, bloco_y, bloco_x, bloco_y_next, bloco_x_next, dx, dy);
 
       if (novo_valor > 255)
       {
