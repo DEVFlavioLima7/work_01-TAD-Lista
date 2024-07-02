@@ -202,6 +202,8 @@ static void on_filter_clahe_rgb_button_clicked(GtkWidget *widget, gpointer data)
   (void)widget;
   (void)data;
 
+
+
   if(historicoRGBAtual->buttonStatus.clahe)
   {
     ImageRGB *newImgRGB = refrashHistoricFuncRGB(CLAHE);
@@ -211,6 +213,8 @@ static void on_filter_clahe_rgb_button_clicked(GtkWidget *widget, gpointer data)
   {
     ImageRGB *newImgRGB = clahe_rgb(historicoRGBAtual->imgRGB, 512, 512);
     adicionarHistoricoRGB(newImgRGB, CLAHE);
+    
+   
   }
 
   atualizarImagem();

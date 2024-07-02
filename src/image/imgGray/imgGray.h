@@ -22,7 +22,8 @@ void limite_Histograma(int *histograma, float limite);
 void calcular_destribuicao(const int *histograma, int num_blocos, int total_pixels, int *cdf);
 void equalizar_regiao(PixelGray *regiao, int width, int height, const float *cfd);
 void Processar_bloco(int inicio_x, int fim_x, int inicio_y, int fim_y, const ImageGray *imagem, int largura, int altura, int *histograma, int num_bins, int limite_corte, int *cdf);
-int interpolar_bilinear(int cdf11, int cdf12, int cdf21, int cdf22, float dx, float dy);
+int interpolacao_bilinear(int cdf_sup_esquerda, int cdf_inf_esquerda, int cdf_sup_direita, int cdf_inf_direita, float dx, float dy);
+int aplicar_cdf_valores(const ImageGray *imagem, int x, int y, int largura, int num_blocos_horizontal, int num_bins, int *cdf_tiles, int bloco_y, int bloco_x, int bloco_y_next, int bloco_x_next, float dx, float dy);
 ImageGray *clahe_gray(const ImageGray *image, int tile_width, int tile_height);
 
 // funçoes auxiliares para filtro median_blur_gray
