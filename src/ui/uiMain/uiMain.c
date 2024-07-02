@@ -1,7 +1,7 @@
 #include <uiMain.h>
 #include <uiRGB.h>
 #include <uiGray.h>
-#include <uiHistorico.h>
+#include <historico.h>
 #include <gtk/gtk.h>
 
 GtkWidget *aboutDialog;

@@ -1,6 +1,4 @@
-#include <uiHistorico.h>
-#include <imgRGB.h>
-#include <imgGray.h>
+#include <historico.h>
 #include <gtk/gtk.h>
 
 ImgHistoricoRGB *historicoRGBInicio = NULL;

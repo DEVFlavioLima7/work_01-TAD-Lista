@@ -1,7 +1,8 @@
 #include <uiRGB.h>
-#include <uiHistorico.h>
 #include <imgRGB.h>
 #include <uiMain.h>
+#include <historico.h>
+#include <historicoRandom.h>
 #include <gtk/gtk.h>
 
 GtkWidget *imageWidgetRGB;
@@ -108,29 +109,7 @@ static void on_random_button_clicked(GtkWidget *widget, gpointer data)
   (void)widget;
   (void)data;
 
-  if(rand() % 2)
-    on_add90_rotation_rgb_clicked(NULL, NULL);
-
-  if(rand() % 2)
-    on_neq90_rotation_rgb_clicked(NULL, NULL);
-
-  if(rand() % 2)
-    on_flip_horizontal_rgb_button_clicked(NULL, NULL);
-
-  if(rand() % 2)
-    on_flip_vertical_rgb_button_clicked(NULL, NULL);
-
-  if(rand() % 2)
-    on_transpose_rgb_button_clicked(NULL, NULL);
-  
-  if(rand() % 2)
-    on_filter_clahe_rgb_button_clicked(NULL, NULL);
-  
-  if(rand() % 2)
-    on_filter_median_rgb_button_clicked(NULL, NULL);
-
-  atualizarImagem();
-  verificarBotoes();
+  showRandomImageWindowRGB();
 }
 
 static void atualizarToggleBotaoRGB(GtkWidget *button, gboolean estado, GCallback callback)
@@ -159,7 +138,7 @@ static void verificarBotoes()
   gtk_widget_set_sensitive(backButton, historicoRGBAtual->prev != NULL);
 }
 
-static void set_img_to_pixbuf_rgb(GdkPixbuf *pixbuf)
+void set_img_to_pixbuf_rgb(GdkPixbuf *pixbuf)
 {
   guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
 
