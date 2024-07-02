@@ -229,7 +229,7 @@ static void on_filter_median_rgb_button_clicked(GtkWidget *widget, gpointer data
   }
   else
   {
-    ImageRGB *newImgRGB = median_blur_rgb(historicoRGBAtual->imgRGB, 3);
+    ImageRGB *newImgRGB = median_blur_rgb(historicoRGBAtual->imgRGB, 9);
     adicionarHistoricoRGB(newImgRGB, MEDIAN_BLUR);
   }
 

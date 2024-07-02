@@ -169,7 +169,7 @@ ImageGray *refrashHistoricFuncGray(FuncUsed funcUsed)
     newImage = clahe_gray(newImage, 512, 512);
 
   if (usedMedianBlur)
-    newImage = median_blur_gray(newImage, 3);
+    newImage = median_blur_gray(newImage, 9);
   
   return newImage;
 }
@@ -235,7 +235,7 @@ ImageRGB *refrashHistoricFuncRGB(FuncUsed funcUsed)
     newImage = clahe_rgb(newImage, 512, 512);
 
   if (usedMedianBlur)
-    newImage = median_blur_rgb(newImage, 3);
+    newImage = median_blur_rgb(newImage, 9);
 
   return newImage;
 }

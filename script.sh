@@ -63,7 +63,7 @@ case "$opcao_execucao" in
   ninja -C builddir
 
   echo "Executando o projeto..."
-  ./builddir/work_01-TAD-Lista
+  ./builddir/main
   ;;
 2)
   echo "Executando usando Docker..."
