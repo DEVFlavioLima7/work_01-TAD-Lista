@@ -20,4 +20,4 @@ RUN ninja -C builddir
 ENV GTK_THEME=Adwaita:dark
 
 # Run the application
-CMD ["./builddir/work_01-TAD-Lista"]
+CMD ["./builddir/main"]

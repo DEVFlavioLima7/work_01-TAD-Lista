@@ -1,6 +1,7 @@
 #include <uiGray.h>
 #include <imgGray.h>
-#include <uiHistorico.h>
+#include <historico.h>
+#include <historicoRandom.h>
 #include <uiMain.h>
 
 GtkWidget *imageWidgetGray;
@@ -43,7 +44,7 @@ static void verificarBotoes()
   gtk_widget_set_sensitive(backButtonGray, historicoGrayAtual->prev != NULL);
 }
 
-static void set_img_to_pixbuf_gray(GdkPixbuf *pixbuf)
+void set_img_to_pixbuf_gray(GdkPixbuf *pixbuf)
 {
   guchar *pixels = gdk_pixbuf_get_pixels(pixbuf);
 
@@ -137,7 +138,7 @@ static void on_median_blur_gray_button_clicked(GtkWidget *widget, gpointer data)
   }
   else if (!historicoGrayAtual->buttonStatus.median_blur)
   {
-    ImageGray *newImage = median_blur_gray(historicoGrayAtual->imgGray, 3);
+    ImageGray *newImage = median_blur_gray(historicoGrayAtual->imgGray, 9);
     adicionarHistoricoGray(newImage, MEDIAN_BLUR);
   }
 
@@ -196,29 +197,7 @@ void on_random_image_gray_clicked(GtkWidget *widget, gpointer data)
   (void)widget;
   (void)data;
 
-  if (rand() % 2)
-    on_neq90_rotation_gray_clicked(NULL, NULL);
-
-  if (rand() % 2)
-    on_add90_rotation_gray_clicked(NULL, NULL);
-
-  if (rand() % 2)
-    on_median_blur_gray_button_clicked(NULL, NULL);
-
-  if (rand() % 2)
-    on_clahe_gray_button_clicked(NULL, NULL);
-
-  if (rand() % 2)
-    on_flip_horizontal_gray_button_clicked(NULL, NULL);
-
-  if (rand() % 2)
-    on_flip_vertical_gray_button_clicked(NULL, NULL);
-
-  if (rand() % 2)
-    on_transpose_gray_button_clicked(NULL, NULL);
-
-  refresh_image_gray();
-  verificarBotoes();
+  showRandomImageWindowGray();
 }
 
 void setup_ui_Gray(GtkWidget *stack)
