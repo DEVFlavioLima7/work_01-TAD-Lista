@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+//Aloca memória para a estrutura ImageRGB.
+//Aloca memória para os pixels da imagem.
+//Retorna o ponteiro para a nova imagem ou NULL em caso de falha.
 ImageRGB *create_image_rgb(int largura, int altura)
 {
     ImageRGB *image = (ImageRGB *)malloc(sizeof(ImageRGB));
@@ -21,7 +23,9 @@ ImageRGB *create_image_rgb(int largura, int altura)
     }
     return image;
 }
-
+//erifica se a imagem é NULL.
+//Libera a memória dos pixels se não for NULL.
+//Libera a estrutura da imagem.
 void free_image_rgb(ImageRGB *image)
 {
     if (image == NULL)
@@ -36,6 +40,8 @@ void free_image_rgb(ImageRGB *image)
     free(image);
 }
 
+//Cria uma nova imagem com as mesmas dimensões.
+//Copia os pixels da imagem original para a nova imagem de forma invertida verticalmente.
 ImageRGB *flip_vertical_rgb(const ImageRGB *image)
 {
     if (image == NULL)
@@ -62,7 +68,7 @@ ImageRGB *flip_vertical_rgb(const ImageRGB *image)
     }
     return nova_imageVertical;
 }
-
+//a mesma da vertical.
 ImageRGB *flip_horizontal_rgb(const ImageRGB *image)
 {
     if (image == NULL)
@@ -90,6 +96,10 @@ ImageRGB *flip_horizontal_rgb(const ImageRGB *image)
     return nova_imagem_horizontal;
 }
 
+//Cria uma nova imagem que é a transposta da imagem original (troca linhas por colunas).
+//Cria uma nova imagem com largura e altura invertidas.
+//Copia os pixels da imagem original para a nova imagem de forma transposta.
+
 ImageRGB *transpose_rgb(const ImageRGB *image){
     if(image==NULL){
         return NULL;
@@ -112,6 +122,9 @@ ImageRGB *transpose_rgb(const ImageRGB *image){
     return  transpose_image;
 }
 
+// Cria uma nova imagem rotacionada 90 graus no sentido horário.
+//Cria uma nova imagem com largura e altura invertidas.
+//Copia os pixels da imagem original para a nova imagem de forma rotacionada 90 graus.
 
 ImageRGB *add90_rotation_RGB(const ImageRGB *image)
 {
@@ -133,7 +146,7 @@ ImageRGB *add90_rotation_RGB(const ImageRGB *image)
 
     return newImg;
 }
-
+//a mesma so que anti-horario
 ImageRGB *neq90_rotation_RGB(const ImageRGB *image)
 {
     if(image==NULL){
@@ -153,6 +166,8 @@ ImageRGB *neq90_rotation_RGB(const ImageRGB *image)
     }
     return newImg;
 }
+//Calcula o histograma de uma região da imagem para um canal de cor específico.
+//Percorre a região especificada da imagem e incrementa o histograma com os valores dos pixels.
 
 void calcula_histograma_rgb(int fim_x, int inicio_x, int fim_y, int inicio_y, int *histograma, const ImageRGB *img, int largura, char canal) {
     for (int y = inicio_y; y < fim_y; ++y) {
